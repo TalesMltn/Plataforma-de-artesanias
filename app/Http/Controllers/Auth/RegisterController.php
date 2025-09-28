@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends Controller
 {
@@ -21,20 +22,26 @@ class RegisterController extends Controller
             'name' => 'required|string|max:255',
             'email'=> 'required|string|email|max:255|unique:users',
             'password'=> 'required|string|min:6|confirmed',
+            'telefono' => 'nullable|string|max:20',
+            'direccion' => 'nullable|string|max:255',
             'tipo' => 'required|in:cliente,artesano',
-            'seudonimo' => 'required_if:tipo,artesano|string|max:255|unique:users,seudonimo'
+            'seudonimo' => 'nullable|string|max:255|unique:users,seudonimo',
         ]);
 
         // Crear usuario
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email'=> $request->email,
             'password'=> Hash::make($request->password),
-            'telefono' => $request->telefono ?? null,
+            'telefono' => $request->telefono,
+            'direccion' => $request->direccion,
             'tipo'=> $request->tipo,
             'seudonimo'=> $request->tipo === 'artesano' ? $request->seudonimo : null,
         ]);
 
-        return redirect()->route('login')->with('success','Registro exitoso. Por favor inicia sesión.');
+        // Auto login después de registro (opcional)
+        Auth::login($user);
+
+        return redirect()->route('home')->with('success','Registro exitoso.');
     }
 }

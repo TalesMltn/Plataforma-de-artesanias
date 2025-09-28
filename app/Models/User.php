@@ -19,7 +19,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // Para roles: 'artesano' o 'cliente'
+        'telefono',
+        'direccion',
+        'tipo',       // cliente o artesano
+        'seudonimo',  // solo para artesano
     ];
 
     /**
@@ -42,7 +45,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => 'string',
         ];
     }
 
@@ -52,5 +54,13 @@ class User extends Authenticatable
     public function perfil()
     {
         return $this->hasOne(Perfil::class);
+    }
+
+    /**
+     * Relación: un usuario (artesano) puede tener muchos trabajos en su portafolio
+     */
+    public function portafolios()
+    {
+        return $this->hasMany(Portafolio::class);
     }
 }

@@ -14,7 +14,13 @@ class Producto extends Model
         'descripcion',
         'precio',
         'stock',
-        'categoria',
         'imagen',
+        'categoria_id', // Reemplaza 'categoria' con 'categoria_id'
     ];
+
+    // Relación: Un producto pertenece a una categoría
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class);
+    }
 }

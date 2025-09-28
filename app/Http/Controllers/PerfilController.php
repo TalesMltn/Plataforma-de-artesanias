@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Perfil;
 
 class PerfilController extends Controller
 {
@@ -12,18 +13,19 @@ class PerfilController extends Controller
      */
     public function index()
     {
-        // Obtener todos los usuarios tipo artesano
-        $artesanos = User::where('role', 'artesano')->get();
+        // Solo mostrar usuarios con rol artesano y que tengan seudónimo
+        $artesanos = User::where('tipo', 'artesano')
+                        ->whereNotNull('seudonimo')
+                        ->get();
 
         return view('perfil.index', compact('artesanos'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new profile.
      */
     public function create()
     {
-        // Formulario de creación de perfil (opcional, si los artesanos editan su perfil)
         return view('perfil.create');
     }
 
@@ -32,7 +34,6 @@ class PerfilController extends Controller
      */
     public function store(Request $request)
     {
-        // Guardar perfil nuevo o actualización
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'nombre' => 'required|string|max:255',
@@ -41,9 +42,10 @@ class PerfilController extends Controller
             'telefono' => 'nullable|string|max:20',
         ]);
 
-        $perfil = \App\Models\Perfil::create($request->all());
+        $perfil = Perfil::create($request->all());
 
-        return redirect()->route('perfil.show', $perfil->user_id)
+        // 🔑 redirigir usando seudonimo
+        return redirect()->route('perfil.show', $perfil->user->seudonimo)
                          ->with('success', 'Perfil creado correctamente');
     }
 
@@ -62,7 +64,10 @@ class PerfilController extends Controller
      */
     public function seudonimo(string $seudonimo)
     {
-        $user = User::with('perfil')->where('seudonimo', $seudonimo)->firstOrFail();
+        // 👇 Aquí cargamos perfil + portafolios del artesano
+        $user = User::with(['perfil', 'portafolios'])
+                    ->where('seudonimo', $seudonimo)
+                    ->firstOrFail();
 
         return view('perfil.show', compact('user'));
     }
@@ -72,7 +77,7 @@ class PerfilController extends Controller
      */
     public function edit(string $id)
     {
-        $perfil = \App\Models\Perfil::where('user_id', $id)->firstOrFail();
+        $perfil = Perfil::where('user_id', $id)->firstOrFail();
 
         return view('perfil.edit', compact('perfil'));
     }
@@ -82,7 +87,7 @@ class PerfilController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $perfil = \App\Models\Perfil::where('user_id', $id)->firstOrFail();
+        $perfil = Perfil::where('user_id', $id)->firstOrFail();
 
         $request->validate([
             'nombre' => 'required|string|max:255',
@@ -93,7 +98,8 @@ class PerfilController extends Controller
 
         $perfil->update($request->all());
 
-        return redirect()->route('perfil.show', $id)
+        // 🔑 redirigir usando seudonimo
+        return redirect()->route('perfil.show', $perfil->user->seudonimo)
                          ->with('success', 'Perfil actualizado correctamente');
     }
 
@@ -102,9 +108,10 @@ class PerfilController extends Controller
      */
     public function destroy(string $id)
     {
-        $perfil = \App\Models\Perfil::where('user_id', $id)->firstOrFail();
+        $perfil = Perfil::where('user_id', $id)->firstOrFail();
         $perfil->delete();
 
-        return redirect()->route('perfil.index')->with('success', 'Perfil eliminado correctamente');
+        return redirect()->route('perfiles.index')
+                         ->with('success', 'Perfil eliminado correctamente');
     }
 }
