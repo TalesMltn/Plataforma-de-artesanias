@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ProyectoController;
@@ -9,58 +8,86 @@ use App\Http\Controllers\PortafolioController;
 use App\Http\Controllers\MensajeController;
 use App\Http\Controllers\ValoracionController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ArtesanoController;
+use App\Http\Controllers\Admin\ClienteController;
 
-// Home
-Route::get('/', fn () => view('home'))->name('home');
+// -----------------------------
+// Home público
+// -----------------------------
+Route::get('/', fn() => view('home'))->name('home');
 
+// -----------------------------
 // Registro y login
-Route::get('register', [AuthController::class, 'showRegisterForm'])->name('register.form');
-Route::post('register', [AuthController::class, 'register'])->name('register');
-Route::get('login', [AuthController::class, 'showLoginForm'])->name('login.form');
-Route::post('login', [AuthController::class, 'login'])->name('login');
-Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+// -----------------------------
+Route::controller(AuthController::class)->group(function () {
+    Route::get('register', 'showRegisterForm')->name('register.form');
+    Route::post('register', 'register')->name('register');
+    Route::get('login', 'showLoginForm')->name('login.form');
+    Route::post('login', 'login')->name('login');
+    Route::post('logout', 'logout')->name('logout');
+});
 
-// Perfil público por seudónimo (sin autenticación)
+// -----------------------------
+// Perfil público por seudónimo
+// -----------------------------
 Route::get('perfil/{seudonimo}', [PerfilController::class, 'seudonimo'])->name('perfil.seudonimo');
 
-// Productos
-Route::get('/productos', [ProductoController::class, 'index'])->name('productos.index');
-Route::get('/productos/categoria/{slug}', [ProductoController::class, 'categoria'])->name('productos.categoria');
-Route::get('/productos/{slug}', [ProductoController::class, 'show'])->name('productos.show');
+// -----------------------------
+// Productos públicos
+// -----------------------------
+Route::controller(ProductoController::class)->group(function () {
+    Route::get('/productos', 'index')->name('productos.index');
+    Route::get('/productos/categoria/{slug}', 'categoria')->name('productos.categoria');
+    Route::get('/productos/{slug}', 'show')->name('productos.show');
+});
 
+// -----------------------------
 // Contacto
-Route::get('/contacto', fn () => view('contacto'))->name('contacto');
+// -----------------------------
+Route::view('/contacto', 'contacto')->name('contacto');
 
-// Rutas protegidas (requieren autenticación)
+// -----------------------------
+// Rutas protegidas
+// -----------------------------
 Route::middleware('auth')->group(function () {
 
-    // Perfiles (solo administrables)
+    // Dashboard
+    Route::view('/dashboard', 'dashboard')->name('dashboard');
+
+    // Perfiles (CRUD completo menos show)
     Route::resource('perfiles', PerfilController::class)->except(['show']);
 
-    // Proyectos
-    // -------------------
-    // Cliente: solo ver proyectos
-    Route::get('proyectos', [ProyectoController::class, 'index'])
-        ->name('proyectos.index')
-        ->middleware('role:cliente');
+    // -----------------------------
+    // Proyectos por rol
+    // -----------------------------
+    Route::middleware('check.role:cliente')->group(function () {
+        Route::get('proyectos', [ProyectoController::class, 'index'])->name('proyectos.index');
+        Route::get('proyectos/{proyecto}', [ProyectoController::class, 'show'])->name('proyectos.show');
+    });
 
-    Route::get('proyectos/{proyecto}', [ProyectoController::class, 'show'])
-        ->name('proyectos.show')
-        ->middleware('role:cliente');
-
-    // Artesano: solo crear, editar y eliminar sus proyectos
-    Route::middleware('role:artesano')->group(function () {
+    Route::middleware('check.role:artesano')->group(function () {
         Route::get('proyectos/crear', [ProyectoController::class, 'create'])->name('proyectos.create');
         Route::post('proyectos', [ProyectoController::class, 'store'])->name('proyectos.store');
         Route::get('proyectos/{proyecto}/edit', [ProyectoController::class, 'edit'])->name('proyectos.edit');
         Route::put('proyectos/{proyecto}', [ProyectoController::class, 'update'])->name('proyectos.update');
         Route::delete('proyectos/{proyecto}', [ProyectoController::class, 'destroy'])->name('proyectos.destroy');
+
+        // Portafolios (solo artesanos)
+        Route::resource('portafolios', PortafolioController::class);
     });
 
-    // Portafolios: solo artesanos
-    Route::resource('portafolios', PortafolioController::class)->middleware('role:artesano');
-
-    // Mensajes y valoraciones (cualquier usuario autenticado)
+    // Mensajes y valoraciones (todos los usuarios autenticados)
     Route::resource('mensajes', MensajeController::class);
     Route::resource('valoraciones', ValoracionController::class);
+
+    // -----------------------------
+    // Panel de Administración
+    // -----------------------------
+    Route::prefix('admin')->name('admin.')->middleware('check.role:admin')->group(function () {
+        Route::resource('users', UserController::class)->except(['create','store','show']);
+        Route::resource('clientes', ClienteController::class);
+        Route::resource('artesanos', ArtesanoController::class);
+    });
+
 });

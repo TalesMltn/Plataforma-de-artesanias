@@ -11,7 +11,6 @@ class Perfil extends Model
 
     protected $table = 'perfiles';
 
-    // Campos que se pueden asignar masivamente
     protected $fillable = [
         'user_id',
         'nombre',
@@ -20,27 +19,9 @@ class Perfil extends Model
         'telefono',
     ];
 
-    // Relación: un perfil pertenece a un usuario
+    // Relación con el usuario
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    // Relación: un perfil puede tener muchos proyectos (si los tienes)
-    public function proyectos()
-    {
-        return $this->hasMany(Proyecto::class);
-    }
-
-    // Relación: un perfil puede recibir muchos mensajes
-    public function mensajes()
-    {
-        return $this->hasMany(Mensaje::class, 'receptor_id');
-    }
-
-    // Relación: un perfil tiene valoraciones
-    public function valoraciones()
-    {
-        return $this->hasMany(Valoracion::class);
     }
 }

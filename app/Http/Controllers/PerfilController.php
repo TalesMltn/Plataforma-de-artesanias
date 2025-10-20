@@ -9,20 +9,21 @@ use App\Models\Perfil;
 class PerfilController extends Controller
 {
     /**
-     * Display a listing of all artesanos.
+     * Mostrar todos los artesanos con perfil.
      */
     public function index()
     {
-        // Solo mostrar usuarios con rol artesano y que tengan seudónimo
-        $artesanos = User::where('tipo', 'artesano')
-                        ->whereNotNull('seudonimo')
-                        ->get();
+        // Solo usuarios con tipo 'artesano' y que tengan seudónimo
+        $artesanos = User::with('perfil')
+        ->where('tipo', 'artesano')
+        ->whereNotNull('seudonimo')
+        ->get();
 
         return view('perfil.index', compact('artesanos'));
     }
 
     /**
-     * Show the form for creating a new profile.
+     * Formulario para crear un perfil.
      */
     public function create()
     {
@@ -30,7 +31,7 @@ class PerfilController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Guardar un perfil nuevo.
      */
     public function store(Request $request)
     {
@@ -42,29 +43,34 @@ class PerfilController extends Controller
             'telefono' => 'nullable|string|max:20',
         ]);
 
-        $perfil = Perfil::create($request->all());
+        // Crear perfil correctamente vinculado al usuario
+        $perfil = Perfil::create([
+            'user_id' => $request->user_id,
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+            'ubicacion' => $request->ubicacion,
+            'telefono' => $request->telefono,
+        ]);
 
-        // 🔑 redirigir usando seudonimo
-        return redirect()->route('perfil.show', $perfil->user->seudonimo)
+        $user = $perfil->user; // relación user()
+        return redirect()->route('perfil.seudonimo', $user->seudonimo ?? $user->id)
                          ->with('success', 'Perfil creado correctamente');
     }
 
     /**
-     * Display the specified resource by ID.
+     * Mostrar perfil por ID de usuario.
      */
     public function show(string $id)
     {
         $user = User::with('perfil')->findOrFail($id);
-
         return view('perfil.show', compact('user'));
     }
 
     /**
-     * Display the specified resource by seudónimo.
+     * Mostrar perfil por seudónimo.
      */
     public function seudonimo(string $seudonimo)
     {
-        // 👇 Aquí cargamos perfil + portafolios del artesano
         $user = User::with(['perfil', 'portafolios'])
                     ->where('seudonimo', $seudonimo)
                     ->firstOrFail();
@@ -73,17 +79,16 @@ class PerfilController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Formulario para editar perfil.
      */
     public function edit(string $id)
     {
         $perfil = Perfil::where('user_id', $id)->firstOrFail();
-
         return view('perfil.edit', compact('perfil'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar perfil existente.
      */
     public function update(Request $request, string $id)
     {
@@ -96,15 +101,20 @@ class PerfilController extends Controller
             'telefono' => 'nullable|string|max:20',
         ]);
 
-        $perfil->update($request->all());
+        $perfil->update([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+            'ubicacion' => $request->ubicacion,
+            'telefono' => $request->telefono,
+        ]);
 
-        // 🔑 redirigir usando seudonimo
-        return redirect()->route('perfil.show', $perfil->user->seudonimo)
+        $user = $perfil->user;
+        return redirect()->route('perfil.seudonimo', $user->seudonimo ?? $user->id)
                          ->with('success', 'Perfil actualizado correctamente');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar perfil.
      */
     public function destroy(string $id)
     {

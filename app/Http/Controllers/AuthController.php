@@ -31,8 +31,8 @@ class AuthController extends Controller
             'email'      => $request->email,
             'telefono'   => $request->telefono,
             'direccion'  => $request->direccion,
-            'tipo'       => $request->tipo,
-            'seudonimo'  => $request->seudonimo,
+            'tipo'       => $request->tipo, // ✅ guardamos tipo correcto
+            'seudonimo'  => $request->tipo === 'artesano' ? $request->seudonimo : null,
             'password'   => Hash::make($request->password),
         ]);
 

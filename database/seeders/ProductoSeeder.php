@@ -4,12 +4,16 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class ProductoSeeder extends Seeder
 {
     public function run(): void
     {
+        // Limpia la tabla antes de insertar
+        DB::table('productos')->truncate();
+
         $productos = [
             // Textiles y tejidos
             ['nombre' => 'Poncho', 'slug_categoria' => 'textiles-y-tejidos'],
@@ -34,7 +38,7 @@ class ProductoSeeder extends Seeder
             ['nombre' => 'Mate con escena cultural', 'slug_categoria' => 'mates-burilados'],
             ['nombre' => 'Mate con diseño local', 'slug_categoria' => 'mates-burilados'],
 
-            // Joyería y bisutería artesanal
+            // Joyería y bisutería
             ['nombre' => 'Collar', 'slug_categoria' => 'joyeria-y-bisuteria'],
             ['nombre' => 'Pulsera', 'slug_categoria' => 'joyeria-y-bisuteria'],
             ['nombre' => 'Anillo', 'slug_categoria' => 'joyeria-y-bisuteria'],
@@ -67,8 +71,10 @@ class ProductoSeeder extends Seeder
 
         foreach ($productos as $producto) {
             $categoriaId = DB::table('categorias')->where('slug', $producto['slug_categoria'])->value('id');
+
             DB::table('productos')->insert([
                 'nombre' => $producto['nombre'],
+                'slug' => Str::slug($producto['nombre']),
                 'categoria_id' => $categoriaId,
                 'descripcion' => 'Descripción de ' . $producto['nombre'],
                 'precio' => rand(10, 100),

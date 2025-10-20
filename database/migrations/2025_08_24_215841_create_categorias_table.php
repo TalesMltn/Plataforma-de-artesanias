@@ -8,10 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('categorias', function (Blueprint $table) {
+         Schema::create('categorias', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre')->unique(); // Ej: 'Textiles y tejidos'
-            $table->text('descripcion')->nullable(); // Descripción detallada
+            $table->string('nombre')->unique();
+            $table->string('slug')->unique();
+            $table->text('descripcion')->nullable();
             $table->timestamps();
         });
     }

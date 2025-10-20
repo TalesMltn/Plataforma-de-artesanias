@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up()
     {
-       // Schema::table('categorias', function (Blueprint $table) {
-       //     $table->string('slug')->unique()->after('nombre');
-       // });
+        Schema::table('productos', function (Blueprint $table) {
+            $table->string('slug')->nullable()->after('nombre');
+
+        });
     }
     
     public function down()
     {
-        // Schema::table('categorias', function (Blueprint $table) {
-        //    $table->dropColumn('slug');
-        //});
+        Schema::table('productos', function (Blueprint $table) {
+            $table->dropColumn('slug');
+        });
     }
-    
     
 };

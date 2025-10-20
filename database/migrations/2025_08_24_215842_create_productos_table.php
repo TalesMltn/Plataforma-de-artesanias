@@ -17,9 +17,16 @@ return new class extends Migration
             $table->text('descripcion')->nullable(); // Descripción opcional
             $table->decimal('precio', 10, 2); // Precio con 2 decimales
             $table->integer('stock')->default(0); // Cantidad en inventario
-            $table->string('categoria')->nullable(); // Tipo/categoría del producto
-            $table->string('imagen')->nullable(); // Ruta de imagen
-            $table->timestamps(); // created_at y updated_at
+            $table->string('imagen')->nullable(); // Ruta de la imagen
+
+            // Relación con categorías
+            $table->unsignedBigInteger('categoria_id');
+            $table->foreign('categoria_id')
+                  ->references('id')
+                  ->on('categorias')
+                  ->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
 

@@ -11,7 +11,9 @@
             @foreach($artesanos as $artesano)
                 <div class="bg-white rounded-xl shadow-lg p-5 text-center">
                     {{-- Seudónimo --}}
-                    <h4 class="font-bold text-xl mb-3 text-gray-800">{{ $artesano->seudonimo ?? $artesano->name }}</h4>
+                    <h4 class="font-bold text-xl mb-3 text-gray-800">
+                        {{ $artesano->seudonimo ?? $artesano->name }}
+                    </h4>
 
                     {{-- Botón Ver Perfil --}}
                     <a href="{{ route('perfil.seudonimo', $artesano->seudonimo) }}"

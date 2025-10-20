@@ -9,12 +9,12 @@ class Kernel extends HttpKernel
     /**
      * Global HTTP middleware stack.
      *
+     * Estos middleware se ejecutan en **todas** las solicitudes.
+     *
      * @var array<int, class-string|string>
      */
     protected $middleware = [
-        // Middleware globales de Laravel
         \App\Http\Middleware\TrustProxies::class,
-       
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
@@ -45,18 +45,16 @@ class Kernel extends HttpKernel
     /**
      * Route middleware.
      *
-     * Estos middleware se pueden usar con ->middleware('nombre')
+     * Se pueden usar en rutas con ->middleware('nombre')
      *
      * @var array<string, class-string|string>
      */
     protected $routeMiddleware = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         
-            'auth' => \App\Http\Middleware\Authenticate::class,
-            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-       
-            
-        
-        
+        // Middleware personalizado de roles
+        'check.role' => \App\Http\Middleware\CheckRole::class,
     ];
 }

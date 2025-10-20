@@ -32,6 +32,14 @@
                 </a>
             @else
                 <span class="text-white font-semibold">Hola, {{ Auth::user()->name }}</span>
+
+                <!-- Menú solo para admin -->
+                @if(Auth::user()->role === 'admin')
+                    <a href="{{ route('admin.users.index') }}" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Usuarios</a>
+                    <a href="{{ route('admin.clientes.index') }}" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Clientes</a>
+                    <a href="{{ route('admin.artesanos.index') }}" class="bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700">Artesanos</a>
+                @endif
+
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="bg-red-600 text-white font-bold px-4 py-2 rounded-xl hover:bg-red-700 transition">
